@@ -2,6 +2,7 @@
 
 namespace ComposableQueryBuilder\Appliers;
 
+use ComposableQueryBuilder\Filters\FilterBehaviour;
 use ComposableQueryBuilder\QueryBuilderParams;
 use ComposableQueryBuilder\Traits\QueryFieldTypeIdentifier;
 use ComposableQueryBuilder\Traits\QueryStatementFieldNormalizer;
@@ -69,7 +70,8 @@ class FilterApplier implements Applier
             if (!$this->shouldNotApplyFilter($value)) {
                 $value = Normalizer::boolean($value);
 
-                $this->addWhereClause($fullColumnName, $value);
+                $behaviour = $this->getBehaviour($fullColumnName, $value);
+                $behaviour($fullColumnName, $value, $this->builder);
             }
         }
     }
@@ -84,66 +86,38 @@ class FilterApplier implements Applier
         return empty($value) && $value !== 0 && $value !== '0';
     }
 
-    private function addWhereClause($column, $value)
+    private function getBehaviour($column, $value): callable
     {
-        $filterTypeResolver = $this->parameters->getFilterTypeResolver();
+        $filterBehaviour = $this->parameters->getFilterBehaviour();
 
-        if ($this->isCustomType($filterTypeResolver, $column)) {
-            return $filterTypeResolver[$column]($this->builder, $value, $column);
-        }
-
-        if ($this->isBetweenDateTimeType($filterTypeResolver, $column)) {
-            $value = $this->normalizeDateTimeStatement($value);
-
-            return $this->builder->whereBetween($column, $value);
-        }
-
-        if ($this->isDecimalBooleanType($filterTypeResolver, $column)) {
-            if ($value) {
-                return $this->builder->where($column, '>', 0);
-            } else {
-                return $this->builder->where($column, 0);
-            }
-        }
-
-        if ($this->isBooleanNotNull($filterTypeResolver, $column)) {
-            return $value
-                ? $this->builder->whereNotNull($column)
-                : $this->builder->whereNull($column);
+        if (!empty($resolver[$column]) && is_callable($resolver[$column])) {
+            return $filterBehaviour[$column];
         }
 
         if ($this->isNull($value)) {
-            return $this->builder->whereNull($column);
+            return FilterBehaviour::whereNull();
         }
 
         if ($this->isNotNull($value)) {
-            return $this->builder->whereNotNull($column);
+            return FilterBehaviour::whereNotNull();
         }
 
         if ($this->isNotEquals($value)) {
-            return $this->builder->where($column, '<>', $this->normalizeNotEqualsStatement($value));
+            return FilterBehaviour::notEquals();
         }
 
         if ($this->isRangeClause($value)) {
-            [$symbolClause, $value] = $this->extractRangeClauseStatement($value);
-
-            return $this->builder->where($column, $symbolClause, $value);
+            return FilterBehaviour::numericRange();
         }
 
-        if ($this->isLikeClause($value) && !$this->isExactMatchType($filterTypeResolver, $column)) {
-            if ($this->isFullTextType($filterTypeResolver, $column)) {
-                return $this->builder->whereRaw(
-                    $this->normalizeFullTextStatement($filterTypeResolver[$column], $value)
-                );
-            }
-
-            return $this->builder->where($column, 'like', $this->normalizeLikeStatement($value));
+        if ($this->isLikeClause($value)) {
+            return FilterBehaviour::contains();
         }
 
         if ($this->isInClause($value)) {
-            return $this->builder->whereIn($column, $value);
+            return FilterBehaviour::whereIn();
         }
 
-        return $this->builder->where($column, $value);
+        return FilterBehaviour::exactMatch();
     }
 }

@@ -2,17 +2,25 @@
 
 namespace ComposableQueryBuilder\Traits;
 
+use ComposableQueryBuilder\Utils\Normalizer;
 use Illuminate\Support\Str;
 
 trait FullTextSearch
 {
+    public function getMatchAgainstStatement($columns, $term): string
+    {
+        $columns = implode(',', Normalizer::array($columns));
+
+        return "MATCH ({$columns}) AGAINST ('{$this->fullTextWildcards($term)}' IN BOOLEAN MODE)";
+    }
+
     /**
      * Replaces spaces with full text search wildcards
      *
      * @param string $term
      * @return string
      */
-    protected function fullTextWildcards($term)
+    protected function fullTextWildcards($term): string
     {
         // removing symbols used by MySQL
         $reservedSymbols = ['-', '+', '<', '>', '@', '(', ')', '~'];
@@ -30,19 +38,10 @@ trait FullTextSearch
             }
         }
 
-        $searchTerm = implode(' ', $words);
-
-        return $searchTerm;
+        return implode(' ', $words);
     }
 
-    public function getMatchAgainstStatement($columns, $term)
-    {
-        $columns = implode(',', array_normalize($columns));
-
-        return "MATCH ({$columns}) AGAINST ('{$this->fullTextWildcards($term)}' IN BOOLEAN MODE)";
-    }
-
-    public function forEachNumericToken($term, $callback)
+    public function forEachNumericToken($term, $callback): void
     {
         $tokens = explode(' ', $term);
 
@@ -53,7 +52,7 @@ trait FullTextSearch
         }
     }
 
-    public function forEachOneDigitToken($term, $callback)
+    public function forEachOneDigitToken($term, $callback): void
     {
         $tokens = explode(' ', $term);
 

@@ -24,11 +24,4 @@ class QueryBuilder
 
         return new QueryBuilderResult($parameters, $builder);
     }
-
-    public static function first(QueryBuilderParams $parameters)
-    {
-        $result = self::for($parameters);
-
-        return $result->first();
-    }
 }

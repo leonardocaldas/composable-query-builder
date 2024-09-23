@@ -4,22 +4,23 @@ namespace ComposableQueryBuilder\Traits;
 
 use ComposableQueryBuilder\Enums\QueryStringStatementTokens;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 trait QueryStatementFieldNormalizer
 {
     use FullTextSearch;
 
-    protected function normalizeNotEqualsStatement(string $value)
+    protected function normalizeNotEqualsStatement(string $value): string
     {
         return str_replace(QueryStringStatementTokens::NOT_EQUALS, '', $value);
     }
 
-    protected function normalizeLikeStatement($value)
+    protected function normalizeLikeStatement($value): string
     {
         return QueryStringStatementTokens::LIKE . $value . QueryStringStatementTokens::LIKE;
     }
 
-    protected function normalizeFullTextStatement(string $typeResolver, string $value)
+    protected function normalizeFullTextStatement(string $typeResolver, string $value): string
     {
         $typeResolver    = str_replace('fulltext:', '', $typeResolver);
         $fullTextColumns = explode(',', trim($typeResolver));
@@ -37,23 +38,11 @@ trait QueryStatementFieldNormalizer
         ];
 
         foreach ($symbols as $symbol) {
-            if (starts_with($value, $symbol)) {
-                return [$symbol, str_replace_first($symbol, '', $value)];
+            if (Str::startsWith($value, $symbol)) {
+                return [$symbol, Str::replaceFirst($symbol, '', $value)];
             }
         }
 
         return ["=", $value];
-    }
-
-    protected function normalizeDateTimeStatement(array $values): array
-    {
-        if (str_contains($values['0'], 'T')) {
-            return [
-                Carbon::parse($values[0])->utc()->toDateTimeString(),
-                Carbon::parse($values[1])->utc()->toDateTimeString(),
-            ];
-        }
-
-        return ["{$values[0]} 00:00:00", "{$values[1]} 23:59:59"];
     }
 }

@@ -18,7 +18,7 @@ class QueryBuilderParams
 
     private array $filterNameMapping = [];
 
-    private array $filterTypeResolver = [];
+    private array $filterBehaviour = [];
 
     /**
      * @var QueryModifier[] $modifiers
@@ -47,7 +47,7 @@ class QueryBuilderParams
 
     private VariationProvider $variationProvider;
 
-    private bool  $filtersEnabled    = true;
+    private bool  $filtersEnabled = true;
     private array $allowedFilters = [];
     private array $excludeFilters = ['token'];
 
@@ -86,27 +86,9 @@ class QueryBuilderParams
         return $this;
     }
 
-    public function setPaginationProvider(PaginationProvider $paginationProvider): self
-    {
-        $this->paginationProvider = $paginationProvider;
-        return $this;
-    }
-
-    public function setFilterProvider(FilterProvider $filterProvider): self
-    {
-        $this->filterProvider = $filterProvider;
-        return $this;
-    }
-
     public function setModifierProvider(VariationProvider $variationProvider): self
     {
         $this->variationProvider = $variationProvider;
-        return $this;
-    }
-
-    public function setOrderingProvider(OrderingProvider $orderingProvider): self
-    {
-        $this->orderingProvider = $orderingProvider;
         return $this;
     }
 
@@ -124,11 +106,11 @@ class QueryBuilderParams
 
     public function filterBehaviour(array $typeResolver): self
     {
-        $this->filterTypeResolver = $typeResolver;
+        $this->filterBehaviour = $typeResolver;
         return $this;
     }
 
-    public function excludeFilters(array $filters): self
+    public function setExcludeFilters(array $filters): self
     {
         $this->excludeFilters = array_merge($this->excludeFilters, $filters);
         return $this;
@@ -145,12 +127,6 @@ class QueryBuilderParams
         return $this->setAllowedFilters(
             array_values($this->filterNameMapping)
         );
-    }
-
-    public function setAllowedFilters(array $filters): self
-    {
-        $this->allowedFilters = array_merge($this->allowedFilters, $filters);
-        return $this;
     }
 
     public function addQueryModifier($name, callable $callable, $default = false): self
@@ -199,6 +175,12 @@ class QueryBuilderParams
         return $this->allowedFilters;
     }
 
+    public function setAllowedFilters(array $filters): self
+    {
+        $this->allowedFilters = array_merge($this->allowedFilters, $filters);
+        return $this;
+    }
+
     public function getFiltersEnabled(): bool
     {
         return $this->filtersEnabled;
@@ -219,9 +201,9 @@ class QueryBuilderParams
         return $this->baseQuery;
     }
 
-    public function getFilterTypeResolver(): array
+    public function getFilterBehaviour(): array
     {
-        return $this->filterTypeResolver;
+        return $this->filterBehaviour;
     }
 
     public function getFilterNameMapping(): array
@@ -249,9 +231,21 @@ class QueryBuilderParams
         return $this->filterProvider;
     }
 
+    public function setFilterProvider(FilterProvider $filterProvider): self
+    {
+        $this->filterProvider = $filterProvider;
+        return $this;
+    }
+
     public function getPaginationProvider(): PaginationProvider
     {
         return $this->paginationProvider;
+    }
+
+    public function setPaginationProvider(PaginationProvider $paginationProvider): self
+    {
+        $this->paginationProvider = $paginationProvider;
+        return $this;
     }
 
     public function getVariationProvider(): VariationProvider
@@ -262,6 +256,12 @@ class QueryBuilderParams
     public function getOrderingProvider(): OrderingProvider
     {
         return $this->orderingProvider;
+    }
+
+    public function setOrderingProvider(OrderingProvider $orderingProvider): self
+    {
+        $this->orderingProvider = $orderingProvider;
+        return $this;
     }
 
     public function getAggregation(): ?callable
