@@ -18,7 +18,7 @@ class QueryBuilderParams
 
     private array $filterNameMapping = [];
 
-    private array $filterBehaviour = [];
+    private array $filterBehavior = [];
 
     /**
      * @var QueryModifier[] $modifiers
@@ -104,9 +104,9 @@ class QueryBuilderParams
         return $this;
     }
 
-    public function filterBehaviour(array $typeResolver): self
+    public function filterBehavior(array $typeResolver): self
     {
-        $this->filterBehaviour = $typeResolver;
+        $this->filterBehavior = $typeResolver;
         return $this;
     }
 
@@ -201,9 +201,9 @@ class QueryBuilderParams
         return $this->baseQuery;
     }
 
-    public function getFilterBehaviour(): array
+    public function getFilterBehavior(): array
     {
-        return $this->filterBehaviour;
+        return $this->filterBehavior;
     }
 
     public function getFilterNameMapping(): array

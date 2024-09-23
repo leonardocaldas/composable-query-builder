@@ -2,7 +2,7 @@
 
 namespace ComposableQueryBuilder\Appliers;
 
-use ComposableQueryBuilder\Filters\FilterBehaviour;
+use ComposableQueryBuilder\Filters\FilterBehavior;
 use ComposableQueryBuilder\QueryBuilderParams;
 use ComposableQueryBuilder\Traits\QueryFieldTypeIdentifier;
 use ComposableQueryBuilder\Traits\QueryStatementFieldNormalizer;
@@ -88,36 +88,36 @@ class FilterApplier implements Applier
 
     private function getBehaviour($column, $value): callable
     {
-        $filterBehaviour = $this->parameters->getFilterBehaviour();
+        $filterBehaviour = $this->parameters->getFilterBehavior();
 
         if (!empty($filterBehaviour[$column]) && is_callable($filterBehaviour[$column])) {
             return $filterBehaviour[$column];
         }
 
         if ($this->isNull($value)) {
-            return FilterBehaviour::whereNull();
+            return FilterBehavior::whereNull();
         }
 
         if ($this->isNotNull($value)) {
-            return FilterBehaviour::whereNotNull();
+            return FilterBehavior::whereNotNull();
         }
 
         if ($this->isNotEquals($value)) {
-            return FilterBehaviour::notEquals();
+            return FilterBehavior::notEquals();
         }
 
         if ($this->isRangeClause($value)) {
-            return FilterBehaviour::numericRange();
+            return FilterBehavior::numericRange();
         }
 
         if ($this->isLikeClause($value)) {
-            return FilterBehaviour::contains();
+            return FilterBehavior::contains();
         }
 
         if ($this->isInClause($value)) {
-            return FilterBehaviour::whereIn();
+            return FilterBehavior::whereIn();
         }
 
-        return FilterBehaviour::exactMatch();
+        return FilterBehavior::exactMatch();
     }
 }

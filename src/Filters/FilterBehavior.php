@@ -6,7 +6,7 @@ use ComposableQueryBuilder\Enums\QueryStringStatementTokens;
 use ComposableQueryBuilder\Utils\FilterValueExtractor;
 use ComposableQueryBuilder\Utils\FullTextSearch;
 
-class FilterBehaviour
+class FilterBehavior
 {
     public static function exactMatch(): callable
     {
