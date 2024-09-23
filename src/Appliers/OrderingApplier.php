@@ -2,13 +2,13 @@
 
 namespace ComposableQueryBuilder\Appliers;
 
-use ComposableQueryBuilder\Params;
+use ComposableQueryBuilder\QueryBuilderParams;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 class OrderingApplier implements Applier
 {
-    public static function apply(Builder $builder, Params $queryQueryParams): Builder
+    public static function apply(Builder $builder, QueryBuilderParams $queryQueryParams): Builder
     {
         $provider = $queryQueryParams->getOrderingProvider();
 

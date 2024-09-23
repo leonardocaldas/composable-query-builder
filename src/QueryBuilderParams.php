@@ -12,7 +12,7 @@ use ComposableQueryBuilder\Representation\QueryModifier;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 
-class Params
+class QueryBuilderParams
 {
     private Builder $baseQuery;
 
@@ -67,12 +67,12 @@ class Params
 
     public static function new(): self
     {
-        return new Params();
+        return new QueryBuilderParams();
     }
 
     public static function newFromRequest(Request $request): self
     {
-        return new Params(
+        return new QueryBuilderParams(
             new RequestProvider($request)
         );
     }

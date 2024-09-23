@@ -2,7 +2,7 @@
 
 namespace ComposableQueryBuilder\Appliers;
 
-use ComposableQueryBuilder\Params;
+use ComposableQueryBuilder\QueryBuilderParams;
 use ComposableQueryBuilder\Traits\QueryFieldTypeIdentifier;
 use ComposableQueryBuilder\Traits\QueryStatementFieldNormalizer;
 use ComposableQueryBuilder\Traits\QueryStatementGuesser;
@@ -17,10 +17,10 @@ class FilterApplier implements Applier
 
     private function __construct(
         private readonly Builder $builder,
-        private readonly Params $parameters,
+        private readonly QueryBuilderParams $parameters,
     ) {}
 
-    public static function apply(Builder $builder, Params $queryParams): Builder
+    public static function apply(Builder $builder, QueryBuilderParams $queryParams): Builder
     {
         return (new self($builder, $queryParams))->run();
     }

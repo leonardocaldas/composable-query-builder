@@ -2,10 +2,10 @@
 
 namespace ComposableQueryBuilder\Appliers;
 
-use ComposableQueryBuilder\Params;
+use ComposableQueryBuilder\QueryBuilderParams;
 use Illuminate\Database\Query\Builder;
 
 interface Applier
 {
-    public static function apply(Builder $builder, Params $queryQueryParams): Builder;
+    public static function apply(Builder $builder, QueryBuilderParams $queryQueryParams): Builder;
 }
