@@ -1,0 +1,18 @@
+{
+    "name": "leonardocaldas/composable-query-builder",
+    "type": "composer-plugin",
+    "require": {
+        "laravel/framework": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ComposableQueryBuilder\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Leonardo Caldas",
+            "email": "leonardo.ferreira.caldas@gmail.com"
+        }
+    ]
+}
