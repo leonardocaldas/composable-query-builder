@@ -6,11 +6,11 @@ use ComposableQueryBuilder\Appliers\FilterApplier;
 use ComposableQueryBuilder\Appliers\OrderingApplier;
 use ComposableQueryBuilder\Appliers\PaginationApplier;
 use ComposableQueryBuilder\Appliers\VariationApplier;
-use ComposableQueryBuilder\Representation\ComposableQueryBuilderResult;
+use ComposableQueryBuilder\Representation\QueryBuilderResult;
 
 class QueryBuilder
 {
-    public static function for(QueryBuilderParams $parameters): ComposableQueryBuilderResult
+    public static function for(QueryBuilderParams $parameters): QueryBuilderResult
     {
         $builder = clone $parameters->getBaseQuery();
 
@@ -22,7 +22,7 @@ class QueryBuilder
 
         $builder = PaginationApplier::apply($builder, $parameters);
 
-        return new ComposableQueryBuilderResult($parameters, $builder);
+        return new QueryBuilderResult($parameters, $builder);
     }
 
     public static function first(QueryBuilderParams $parameters)

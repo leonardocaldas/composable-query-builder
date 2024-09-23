@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class ComposableQueryBuilderResult implements Jsonable
+class QueryBuilderResult implements Jsonable
 {
     private QueryBuilderParams $parameters;
     private Builder            $builder;
