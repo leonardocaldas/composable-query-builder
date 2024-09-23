@@ -2,13 +2,13 @@
 
 namespace ComposableQueryBuilder\Appliers;
 
-use ComposableQueryBuilder\ComposableQueryBuilderParams;
+use ComposableQueryBuilder\Params;
 use ComposableQueryBuilder\Representation\QueryModifier;
 use Illuminate\Database\Query\Builder;
 
 class VariationApplier implements Applier
 {
-    public static function apply(Builder $builder, ComposableQueryBuilderParams $queryQueryParams): Builder
+    public static function apply(Builder $builder, Params $queryQueryParams): Builder
     {
         $provider = $queryQueryParams->getVariationProvider();
 
@@ -29,7 +29,7 @@ class VariationApplier implements Applier
         return $builder;
     }
 
-    private static function applyWhen(ComposableQueryBuilderParams $queryParameters, Builder $builder, callable $callable)
+    private static function applyWhen(Params $queryParameters, Builder $builder, callable $callable)
     {
         collect($queryParameters->getModifiers())
             ->filter($callable)

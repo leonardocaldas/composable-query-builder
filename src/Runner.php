@@ -8,9 +8,9 @@ use ComposableQueryBuilder\Appliers\PaginationApplier;
 use ComposableQueryBuilder\Appliers\VariationApplier;
 use ComposableQueryBuilder\Representation\ComposableQueryBuilderResult;
 
-class ComposableQueryBuilderRunner
+class Runner
 {
-    public static function runWith(ComposableQueryBuilderParams $parameters): ComposableQueryBuilderResult
+    public static function runWith(Params $parameters): ComposableQueryBuilderResult
     {
         $builder = clone $parameters->getBaseQuery();
 
@@ -25,7 +25,7 @@ class ComposableQueryBuilderRunner
         return new ComposableQueryBuilderResult($parameters, $builder);
     }
 
-    public static function first(ComposableQueryBuilderParams $parameters)
+    public static function first(Params $parameters)
     {
         $result = self::runWith($parameters);
 

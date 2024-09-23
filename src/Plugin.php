@@ -8,7 +8,7 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\Capable;
 use Composer\Plugin\Capability\CommandProvider;
 
-class ComposableQueryBuilderPlugin implements PluginInterface
+class Plugin implements PluginInterface
 {
     public function activate(Composer $composer, IOInterface $io)
     {

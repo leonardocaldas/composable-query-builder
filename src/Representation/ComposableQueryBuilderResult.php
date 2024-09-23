@@ -2,7 +2,7 @@
 
 namespace ComposableQueryBuilder\Representation;
 
-use ComposableQueryBuilder\ComposableQueryBuilderParams;
+use ComposableQueryBuilder\Params;
 use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -11,16 +11,16 @@ use Throwable;
 
 class ComposableQueryBuilderResult implements Jsonable
 {
-    private ComposableQueryBuilderParams $parameters;
-    private Builder                      $builder;
+    private Params  $parameters;
+    private Builder $builder;
 
-    public function __construct(ComposableQueryBuilderParams $parameters, Builder $builder)
+    public function __construct(Params $parameters, Builder $builder)
     {
         $this->parameters = $parameters;
         $this->builder    = $builder;
     }
 
-    public function getParameters(): ComposableQueryBuilderParams
+    public function getParameters(): Params
     {
         return $this->parameters;
     }
