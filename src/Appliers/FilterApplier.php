@@ -90,7 +90,7 @@ class FilterApplier implements Applier
     {
         $filterBehaviour = $this->parameters->getFilterBehaviour();
 
-        if (!empty($resolver[$column]) && is_callable($resolver[$column])) {
+        if (!empty($filterBehaviour[$column]) && is_callable($filterBehaviour[$column])) {
             return $filterBehaviour[$column];
         }
 
