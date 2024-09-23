@@ -77,7 +77,7 @@ class ComposableQueryBuilderParams
         );
     }
 
-    public function for($builder): self
+    public function forQuery($builder): self
     {
         if ($builder instanceof \Illuminate\Database\Eloquent\Builder) {
             $builder = $builder->toBase();
