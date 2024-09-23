@@ -7,9 +7,9 @@ use Illuminate\Database\Query\Builder;
 
 class PaginationApplier implements Applier
 {
-    public static function apply(Builder $builder, ComposableQueryBuilderParams $queryQueryParameters): Builder
+    public static function apply(Builder $builder, ComposableQueryBuilderParams $queryQueryParams): Builder
     {
-        $provider = $queryQueryParameters->getPaginationProvider();
+        $provider = $queryQueryParams->getPaginationProvider();
 
         if (!$provider->shouldPaginate()) {
             return $builder;

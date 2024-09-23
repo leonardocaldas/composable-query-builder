@@ -6,6 +6,7 @@ use ComposableQueryBuilder\ComposableQueryBuilderParams;
 use ComposableQueryBuilder\Traits\QueryFieldTypeIdentifier;
 use ComposableQueryBuilder\Traits\QueryStatementFieldNormalizer;
 use ComposableQueryBuilder\Traits\QueryStatementGuesser;
+use ComposableQueryBuilder\Utils\Normalizer;
 use Illuminate\Database\Query\Builder;
 
 class FilterApplier implements Applier
@@ -14,25 +15,14 @@ class FilterApplier implements Applier
     use QueryFieldTypeIdentifier;
     use QueryStatementFieldNormalizer;
 
-    /**
-     * @var ComposableQueryBuilderParams $query
-     */
-    private $parameters;
+    private function __construct(
+        private readonly Builder $builder,
+        private readonly ComposableQueryBuilderParams $parameters,
+    ) {}
 
-    /**
-     * @var Builder $builder
-     */
-    private $builder;
-
-    private function __construct(Builder $builder, ComposableQueryBuilderParams $parameters)
+    public static function apply(Builder $builder, ComposableQueryBuilderParams $queryParams): Builder
     {
-        $this->builder    = $builder;
-        $this->parameters = $parameters;
-    }
-
-    public static function apply(Builder $builder, ComposableQueryBuilderParams $queryParameters): Builder
-    {
-        return (new self($builder, $queryParameters))->run();
+        return (new self($builder, $queryParams))->run();
     }
 
     private function run(): Builder
@@ -45,7 +35,7 @@ class FilterApplier implements Applier
         return $this->builder;
     }
 
-    private function applyDefaultFilters($filters)
+    private function applyDefaultFilters($filters): void
     {
         $defaultFilters = $this->parameters->getDefaultFilters();
 
@@ -58,18 +48,17 @@ class FilterApplier implements Applier
 
     private function applyProvidedFilters($filters): void
     {
-        if (! $this->parameters->getAutomaticFiltersEnabled()) {
+        if (!$this->parameters->getFiltersEnabled()) {
             return;
         }
 
         $allowedFilters    = $this->parameters->getAllowedFilters();
-        $notAllowedFilters = $this->parameters->getNotAllowedFilters();
-        $overrideFilters   = $this->parameters->getOverrideFilters();
+        $notAllowedFilters = $this->parameters->getExcludeFilters();
 
         foreach ($filters as $column => $value) {
             $fullColumnName = $this->getFilterColumn($column);
 
-            if (!empty($allowedFilters) && ! in_array($fullColumnName, $allowedFilters)) {
+            if (!empty($allowedFilters) && !in_array($fullColumnName, $allowedFilters)) {
                 continue;
             }
 
@@ -77,23 +66,22 @@ class FilterApplier implements Applier
                 continue;
             }
 
-            if (! $this->shouldNotApplyFilter($value)) {
-                $value = boolean_normalize($value);
+            if (!$this->shouldNotApplyFilter($value)) {
+                $value = Normalizer::boolean($value);
 
-                $overrideClosure = data_get($overrideFilters, $fullColumnName);
-
-                if ($overrideClosure) {
-                    call_user_func($overrideClosure, $this->builder, $value, $filters);
-                } else {
-                    $this->addWhereClause($fullColumnName, $value);
-                }
+                $this->addWhereClause($fullColumnName, $value);
             }
         }
     }
 
     private function getFilterColumn($column)
     {
-        return data_get($this->parameters->getFilterResolver(), $column, $column);
+        return data_get($this->parameters->getFilterNameMapping(), $column, $column);
+    }
+
+    private function shouldNotApplyFilter($value): bool
+    {
+        return empty($value) && $value !== 0 && $value !== '0';
     }
 
     private function addWhereClause($column, $value)
@@ -157,10 +145,5 @@ class FilterApplier implements Applier
         }
 
         return $this->builder->where($column, $value);
-    }
-
-    private function shouldNotApplyFilter($value)
-    {
-        return empty($value) && $value !== 0 && $value !== '0';
     }
 }

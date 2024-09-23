@@ -2,13 +2,13 @@
 
 namespace ComposableQueryBuilder;
 
+use Closure;
 use ComposableQueryBuilder\Providers\Contracts\FilterProvider;
 use ComposableQueryBuilder\Providers\Contracts\OrderingProvider;
 use ComposableQueryBuilder\Providers\Contracts\PaginationProvider;
 use ComposableQueryBuilder\Providers\Contracts\VariationProvider;
 use ComposableQueryBuilder\Providers\RequestProvider;
-use ComposableQueryBuilder\Representation\QueryVariation;
-use Closure;
+use ComposableQueryBuilder\Representation\QueryModifier;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 
@@ -16,24 +16,19 @@ class ComposableQueryBuilderParams
 {
     private Builder $baseQuery;
 
-    private array $filterResolver = [];
+    private array $filterNameMapping = [];
 
     private array $filterTypeResolver = [];
 
     /**
-     * @var QueryVariation[] $variations
+     * @var QueryModifier[] $modifiers
      */
-    private $variations = [];
+    private $modifiers = [];
 
     /**
      * @var Map<String, Callable<Builder>> $defaultFilters
      */
     private $defaultFilters = [];
-
-    /**
-     * @var array Map<String, Callable<Builder>> $overrideFilters
-     */
-    private array $overrideFilters = [];
 
     /**
      * @var callable $aggregation
@@ -42,7 +37,7 @@ class ComposableQueryBuilderParams
 
     private ?Closure $resultMapper           = null;
     private ?Closure $resultAllEntriesMapper = null;
-    private ?Closure $resultOrderBy = null;
+    private ?Closure $resultOrderBy          = null;
 
     private FilterProvider $filterProvider;
 
@@ -52,9 +47,9 @@ class ComposableQueryBuilderParams
 
     private VariationProvider $variationProvider;
 
-    private bool  $automaticFiltersEnabled = true;
-    private array $allowedFilters          = [];
-    private array $notAllowedFilters       = ['token'];
+    private bool  $filtersEnabled    = true;
+    private array $allowedFilters = [];
+    private array $excludeFilters = ['token'];
 
     private bool $fetchOnlyFirst = false;
     private bool $shouldLogQuery = false;
@@ -82,7 +77,7 @@ class ComposableQueryBuilderParams
         );
     }
 
-    public function withQuery($builder): self
+    public function for($builder): self
     {
         if ($builder instanceof \Illuminate\Database\Eloquent\Builder) {
             $builder = $builder->toBase();
@@ -92,39 +87,33 @@ class ComposableQueryBuilderParams
         return $this;
     }
 
-    public function withBaseQuery(Builder $builder): self
-    {
-        $this->baseQuery = $builder;
-        return $this;
-    }
-
-    public function withPaginationProvider(PaginationProvider $paginationProvider): self
+    public function setPaginationProvider(PaginationProvider $paginationProvider): self
     {
         $this->paginationProvider = $paginationProvider;
         return $this;
     }
 
-    public function withFilterProvider(FilterProvider $filterProvider): self
+    public function setFilterProvider(FilterProvider $filterProvider): self
     {
         $this->filterProvider = $filterProvider;
         return $this;
     }
 
-    public function withVariationProvider(VariationProvider $variationProvider): self
+    public function setModifierProvider(VariationProvider $variationProvider): self
     {
         $this->variationProvider = $variationProvider;
         return $this;
     }
 
-    public function withOrderingProvider(OrderingProvider $orderingProvider): self
+    public function setOrderingProvider(OrderingProvider $orderingProvider): self
     {
         $this->orderingProvider = $orderingProvider;
         return $this;
     }
 
-    public function withFilterResolver(array $filterResolver): self
+    public function filterNameMapping(array $mapping): self
     {
-        $this->filterResolver = $filterResolver;
+        $this->filterNameMapping = $mapping;
         return $this;
     }
 
@@ -134,40 +123,40 @@ class ComposableQueryBuilderParams
         return $this;
     }
 
-    public function withFilterTypeResolver(array $typeResolver): self
+    public function filterBehaviour(array $typeResolver): self
     {
         $this->filterTypeResolver = $typeResolver;
         return $this;
     }
 
-    public function withNotAllowedFilters(array $filters): self
+    public function excludeFilters(array $filters): self
     {
-        $this->notAllowedFilters = array_merge($this->notAllowedFilters, $filters);
+        $this->excludeFilters = array_merge($this->excludeFilters, $filters);
         return $this;
     }
 
-    public function disableAutomaticFilters(): self
+    public function disableFilters(): self
     {
-        $this->automaticFiltersEnabled = false;
+        $this->filtersEnabled = false;
         return $this;
     }
 
-    public function addFilterResolversToAllowedFilters(): self
+    public function onlyAllowFiltersInNameMapping(): self
     {
-        return $this->withAllowedFilters(
-            array_values($this->filterResolver)
+        return $this->setAllowedFilters(
+            array_values($this->filterNameMapping)
         );
     }
 
-    public function withAllowedFilters(array $filters): self
+    public function setAllowedFilters(array $filters): self
     {
         $this->allowedFilters = array_merge($this->allowedFilters, $filters);
         return $this;
     }
 
-    public function withVariation($name, callable $callable, $default = false): self
+    public function addQueryModifier($name, callable $callable, $default = false): self
     {
-        $this->variations[] = new QueryVariation($name, $callable, $default);
+        $this->modifiers[] = new QueryModifier($name, $callable, $default);
         return $this;
     }
 
@@ -177,15 +166,9 @@ class ComposableQueryBuilderParams
         return $this;
     }
 
-    public function withDefaultFilter($filterName, callable $callable): self
+    public function defaultFilter($filterName, callable $callable): self
     {
         $this->defaultFilters[$filterName] = $callable;
-        return $this;
-    }
-
-    public function withOverrideFilter($filterName, callable $callable): self
-    {
-        $this->overrideFilters[$filterName] = $callable;
         return $this;
     }
 
@@ -213,9 +196,9 @@ class ComposableQueryBuilderParams
         return $this;
     }
 
-    public function getVariations(): array
+    public function getModifiers(): array
     {
-        return $this->variations;
+        return $this->modifiers;
     }
 
     public function getAllowedFilters(): array
@@ -223,24 +206,19 @@ class ComposableQueryBuilderParams
         return $this->allowedFilters;
     }
 
-    public function getAutomaticFiltersEnabled(): bool
+    public function getFiltersEnabled(): bool
     {
-        return $this->automaticFiltersEnabled;
+        return $this->filtersEnabled;
     }
 
-    public function getNotAllowedFilters(): array
+    public function getExcludeFilters(): array
     {
-        return $this->notAllowedFilters;
+        return $this->excludeFilters;
     }
 
     public function getDefaultFilters(): array
     {
         return $this->defaultFilters;
-    }
-
-    public function getOverrideFilters(): array
-    {
-        return $this->overrideFilters;
     }
 
     public function getBaseQuery(): Builder
@@ -253,14 +231,14 @@ class ComposableQueryBuilderParams
         return $this->filterTypeResolver;
     }
 
-    public function getFilterResolver(): array
+    public function getFilterNameMapping(): array
     {
-        return $this->filterResolver;
+        return $this->filterNameMapping;
     }
 
     public function hasFilterResolver(): bool
     {
-        return !empty($this->filterResolver);
+        return !empty($this->filterNameMapping);
     }
 
     public function hasTypeResolver(): bool
@@ -270,7 +248,7 @@ class ComposableQueryBuilderParams
 
     public function hasVariations(): bool
     {
-        return !empty($this->variations);
+        return !empty($this->modifiers);
     }
 
     public function shouldFetchOnlyFirst(): bool

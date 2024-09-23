@@ -8,14 +8,14 @@ use Illuminate\Support\Facades\DB;
 
 class OrderingApplier implements Applier
 {
-    public static function apply(Builder $builder, ComposableQueryBuilderParams $queryQueryParameters): Builder
+    public static function apply(Builder $builder, ComposableQueryBuilderParams $queryQueryParams): Builder
     {
-        $provider = $queryQueryParameters->getOrderingProvider();
+        $provider = $queryQueryParams->getOrderingProvider();
 
         if ($provider->hasOrderBy()) {
             self::clearOrderBy($builder);
 
-            $fieldName = data_get($queryQueryParameters->getFilterResolver(), $provider->getFieldName(), $provider->getFieldName());
+            $fieldName = data_get($queryQueryParams->getFilterNameMapping(), $provider->getFieldName(), $provider->getFieldName());
 
             $orderBy = !str_contains($fieldName, ".") ? DB::raw("`$fieldName`") : $fieldName;
 

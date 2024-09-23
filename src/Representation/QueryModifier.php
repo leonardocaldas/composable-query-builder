@@ -2,7 +2,7 @@
 
 namespace ComposableQueryBuilder\Representation;
 
-class QueryVariation
+class QueryModifier
 {
     private string $name;
     private $callable;

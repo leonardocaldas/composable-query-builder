@@ -3,24 +3,24 @@
 namespace ComposableQueryBuilder\Appliers;
 
 use ComposableQueryBuilder\ComposableQueryBuilderParams;
-use ComposableQueryBuilder\Representation\QueryVariation;
+use ComposableQueryBuilder\Representation\QueryModifier;
 use Illuminate\Database\Query\Builder;
 
 class VariationApplier implements Applier
 {
-    public static function apply(Builder $builder, ComposableQueryBuilderParams $queryQueryParameters): Builder
+    public static function apply(Builder $builder, ComposableQueryBuilderParams $queryQueryParams): Builder
     {
-        $provider = $queryQueryParameters->getVariationProvider();
+        $provider = $queryQueryParams->getVariationProvider();
 
-        if ($queryQueryParameters->hasVariations()) {
+        if ($queryQueryParams->hasVariations()) {
             if ($provider->hasVariation()) {
                 $variation = $provider->getVariation();
 
-                self::applyWhen($queryQueryParameters, $builder, function (QueryVariation $config) use ($variation) {
+                self::applyWhen($queryQueryParams, $builder, function (QueryModifier $config) use ($variation) {
                     return $config->getName() == $variation;
                 });
             } else {
-                self::applyWhen($queryQueryParameters, $builder, function (QueryVariation $config) {
+                self::applyWhen($queryQueryParams, $builder, function (QueryModifier $config) {
                     return $config->isDefault();
                 });
             }
@@ -31,9 +31,9 @@ class VariationApplier implements Applier
 
     private static function applyWhen(ComposableQueryBuilderParams $queryParameters, Builder $builder, callable $callable)
     {
-        collect($queryParameters->getVariations())
+        collect($queryParameters->getModifiers())
             ->filter($callable)
-            ->each(function (QueryVariation $parameterVariation) use ($builder) {
+            ->each(function (QueryModifier $parameterVariation) use ($builder) {
                 call_user_func($parameterVariation->getCallable(), $builder);
             });
     }
