@@ -14,6 +14,11 @@
     "extra": {
         "class": "ComposableQueryBuilder\\ComposableQueryBuilderPlugin"
     },
+    "config": {
+        "allow-plugins": {
+            "leonardocaldas/composable-query-builder": true
+        }
+    },
     "authors": [
         {
             "name": "Leonardo Caldas",
