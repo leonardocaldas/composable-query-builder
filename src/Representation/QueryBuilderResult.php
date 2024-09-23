@@ -7,35 +7,33 @@ use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
-class QueryBuilderResult implements Jsonable
+readonly class QueryBuilderResult implements Jsonable
 {
-    private QueryBuilderParams $parameters;
-    private Builder            $builder;
+    public function __construct(
+        private QueryBuilderParams $parameters,
+        private Builder $builder,
+    ) {}
 
-    public function __construct(QueryBuilderParams $parameters, Builder $builder)
-    {
-        $this->parameters = $parameters;
-        $this->builder    = $builder;
-    }
-
-    public function getParameters(): QueryBuilderParams
+    public function getParams(): QueryBuilderParams
     {
         return $this->parameters;
     }
 
-    public function getResults(): Collection
+    public function first(): mixed
     {
-        $this->logIfNeeded();
-        return $this->getBuilder()->get();
+        $this->log();
+
+        return $this->getBuilder()->first();
     }
 
-    private function logIfNeeded()
+    private function log(): void
     {
         if ($this->parameters->getShouldLogQuery()) {
-            Log::info("process=parametrized_query", [
-                'query' => str_replace_array('?', $this->builder->getBindings(), $this->builder->toSql()),
+            Log::info("process=composable_query_builder", [
+                'query' => Str::replaceArray('?', $this->builder->getBindings(), $this->builder->toSql()),
             ]);
         }
     }
@@ -45,38 +43,29 @@ class QueryBuilderResult implements Jsonable
         return $this->builder;
     }
 
-    public function fetchFirst()
-    {
-        $this->logIfNeeded();
-        return $this->getBuilder()->first();
-    }
-
     /**
      * Convert the object to its JSON representation.
      *
      * @param int $options
      * @return string
      */
-    public function toJson($options = 0)
+    public function toJson($options = 0): string
     {
         try {
-            $this->logIfNeeded();
-
-            if ($this->parameters->shouldFetchOnlyFirst()) {
-                return json_encode($this->builder->first(), $options);
-            }
+            $this->log();
 
             if (!$this->parameters->getPaginationProvider()->shouldPaginate()) {
-                return $this->getRows();
+                return $this->get();
             }
 
             return json_encode([
                 'per_page'   => $this->parameters->getPaginationProvider()->getRowsPerPage(),
                 'page'       => $this->parameters->getPaginationProvider()->getPage(),
                 'total'      => $this->builder->getCountForPagination(),
-                'rows'       => $this->getRows(),
+                'rows'       => $this->get(),
                 'aggregates' => $this->getAggregates(),
             ], $options);
+
         } catch (Throwable $throwable) {
             Log::error("process=parameterized_query, status=failed", [
                 'sql'       => $this->builder->toSql(),
@@ -87,7 +76,7 @@ class QueryBuilderResult implements Jsonable
         }
     }
 
-    private function getRows(): Collection
+    private function get(): Collection
     {
         $result            = $this->builder->get();
         $singleEntryMapper = $this->parameters->getResultMapper();
@@ -118,5 +107,12 @@ class QueryBuilderResult implements Jsonable
         }
 
         return [];
+    }
+
+    public function getUntouched(): Collection
+    {
+        $this->log();
+
+        return $this->getBuilder()->get();
     }
 }

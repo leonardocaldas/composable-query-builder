@@ -29,6 +29,6 @@ class QueryBuilder
     {
         $result = self::for($parameters);
 
-        return $result->fetchFirst();
+        return $result->first();
     }
 }

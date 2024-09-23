@@ -51,7 +51,6 @@ class QueryBuilderParams
     private array $allowedFilters = [];
     private array $excludeFilters = ['token'];
 
-    private bool $fetchOnlyFirst = false;
     private bool $shouldLogQuery = false;
 
     private function __construct(?RequestProvider $requestProvider = null)
@@ -190,12 +189,6 @@ class QueryBuilderParams
         return $this;
     }
 
-    public function fetchOnlyFirst(): self
-    {
-        $this->fetchOnlyFirst = true;
-        return $this;
-    }
-
     public function getModifiers(): array
     {
         return $this->modifiers;
@@ -249,11 +242,6 @@ class QueryBuilderParams
     public function hasVariations(): bool
     {
         return !empty($this->modifiers);
-    }
-
-    public function shouldFetchOnlyFirst(): bool
-    {
-        return $this->fetchOnlyFirst;
     }
 
     public function getFilterProvider(): FilterProvider
