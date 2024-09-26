@@ -71,7 +71,7 @@ class FilterApplier implements Applier
                 $value = Normalizer::boolean($value);
 
                 $behaviour = $this->getBehaviour($fullColumnName, $value);
-                $behaviour($fullColumnName, $value, $this->builder);
+                $behaviour($this->builder, $value, $fullColumnName);
             }
         }
     }
