@@ -38,6 +38,7 @@ class QueryBuilderParams
     private ?Closure $resultMapper           = null;
     private ?Closure $resultAllEntriesMapper = null;
     private ?Closure $resultOrderBy          = null;
+    private ?string  $filterNameDefaultTable = null;
 
     private FilterProvider $filterProvider;
 
@@ -92,6 +93,12 @@ class QueryBuilderParams
         return $this;
     }
 
+    public function filterNameDefaultTable(string $tableName): self
+    {
+        $this->filterNameDefaultTable = $tableName;
+        return $this;
+    }
+
     public function filterNameMapping(array $mapping): self
     {
         $this->filterNameMapping = $mapping;
@@ -107,12 +114,6 @@ class QueryBuilderParams
     public function filterBehavior(array $typeResolver): self
     {
         $this->filterBehavior = $typeResolver;
-        return $this;
-    }
-
-    public function setExcludeFilters(array $filters): self
-    {
-        $this->excludeFilters = array_merge($this->excludeFilters, $filters);
         return $this;
     }
 
@@ -191,6 +192,12 @@ class QueryBuilderParams
         return $this->excludeFilters;
     }
 
+    public function setExcludeFilters(array $filters): self
+    {
+        $this->excludeFilters = array_merge($this->excludeFilters, $filters);
+        return $this;
+    }
+
     public function getDefaultFilters(): array
     {
         return $this->defaultFilters;
@@ -209,6 +216,11 @@ class QueryBuilderParams
     public function getFilterNameMapping(): array
     {
         return $this->filterNameMapping;
+    }
+
+    public function getFilterNameDefaultTable(): ?string
+    {
+        return $this->filterNameDefaultTable;
     }
 
     public function hasFilterResolver(): bool

@@ -9,6 +9,7 @@ use ComposableQueryBuilder\Traits\QueryStatementFieldNormalizer;
 use ComposableQueryBuilder\Traits\QueryStatementGuesser;
 use ComposableQueryBuilder\Utils\Normalizer;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Str;
 
 class FilterApplier implements Applier
 {
@@ -78,7 +79,19 @@ class FilterApplier implements Applier
 
     private function getFilterColumn($column)
     {
-        return data_get($this->parameters->getFilterNameMapping(), $column, $column);
+        $filterNameMapping = data_get($this->parameters->getFilterNameMapping(), $column);
+
+        if ($filterNameMapping) {
+            return $filterNameMapping;
+        }
+
+        $filterNameDefaultTable = $this->parameters->getFilterNameDefaultTable();
+
+        if ($filterNameDefaultTable && ! Str::contains($column, ".")) {
+            $column = sprintf("%s.%s", $filterNameDefaultTable, $column);
+        }
+
+        return $column;
     }
 
     private function shouldNotApplyFilter($value): bool

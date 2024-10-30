@@ -2,9 +2,11 @@
 
 namespace ComposableQueryBuilder\Appliers;
 
+use ComposableQueryBuilder\Providers\Contracts\OrderingProvider;
 use ComposableQueryBuilder\QueryBuilderParams;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderingApplier implements Applier
 {
@@ -13,9 +15,9 @@ class OrderingApplier implements Applier
         $provider = $queryQueryParams->getOrderingProvider();
 
         if ($provider->hasOrderBy()) {
-            self::clearOrderBy($builder);
+            $builder->reorder();
 
-            $fieldName = data_get($queryQueryParams->getFilterNameMapping(), $provider->getFieldName(), $provider->getFieldName());
+            $fieldName = self::getOrderingColumnName($queryQueryParams, $provider);
 
             $orderBy = !str_contains($fieldName, ".") ? DB::raw("`$fieldName`") : $fieldName;
 
@@ -25,10 +27,22 @@ class OrderingApplier implements Applier
         return $builder;
     }
 
-    private static function clearOrderBy(Builder $builder)
+    private static function getOrderingColumnName(QueryBuilderParams $queryQueryParams, OrderingProvider $provider): string
     {
-        $builder->orders = null;
+        $column = $provider->getFieldName();
 
-        $builder->bindings['order'] = [];
+        $filterNameMapping = data_get($queryQueryParams->getFilterNameMapping(), $column);
+
+        if ($filterNameMapping) {
+            return $filterNameMapping;
+        }
+
+        $filterNameDefaultTable = $queryQueryParams->getFilterNameDefaultTable();
+
+        if ($filterNameDefaultTable && !Str::contains($column, ".")) {
+            $column = sprintf("%s.%s", $filterNameDefaultTable, $column);
+        }
+
+        return $column;
     }
 }
