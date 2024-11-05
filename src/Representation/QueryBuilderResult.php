@@ -29,15 +29,6 @@ readonly class QueryBuilderResult implements Jsonable
         return $this->getBuilder()->first();
     }
 
-    private function log(): void
-    {
-        if ($this->parameters->getShouldLogQuery()) {
-            Log::info("process=composable_query_builder", [
-                'query' => Str::replaceArray('?', $this->builder->getBindings(), $this->builder->toSql()),
-            ]);
-        }
-    }
-
     public function getBuilder(): Builder
     {
         return $this->builder;
@@ -58,13 +49,7 @@ readonly class QueryBuilderResult implements Jsonable
                 return $this->get();
             }
 
-            return json_encode([
-                'per_page'   => $this->parameters->getPaginationProvider()->getRowsPerPage(),
-                'page'       => $this->parameters->getPaginationProvider()->getPage(),
-                'total'      => $this->builder->getCountForPagination(),
-                'rows'       => $this->get(),
-                'aggregates' => $this->getAggregates(),
-            ], $options);
+            return json_encode($this->getPaginatedResult(), $options);
 
         } catch (Throwable $throwable) {
             Log::error("process=parameterized_query, status=failed", [
@@ -73,6 +58,44 @@ readonly class QueryBuilderResult implements Jsonable
             ]);
 
             throw $throwable;
+        }
+    }
+
+    public function getPaginatedResult(): array
+    {
+        return [
+            'per_page'   => $this->parameters->getPaginationProvider()->getRowsPerPage(),
+            'page'       => $this->parameters->getPaginationProvider()->getPage(),
+            'total'      => $this->builder->getCountForPagination(),
+            'rows'       => $this->get(),
+            'aggregates' => $this->getAggregates(),
+        ];
+    }
+
+    public function getAggregates(): array
+    {
+        $aggregation = $this->parameters->getAggregation();
+
+        if (!is_null($aggregation) && is_callable($aggregation)) {
+            return $aggregation($this->builder->cloneWithout(['limit', 'offset', 'groups']));
+        }
+
+        return [];
+    }
+
+    public function getUntouched(): Collection
+    {
+        $this->log();
+
+        return $this->getBuilder()->get();
+    }
+
+    private function log(): void
+    {
+        if ($this->parameters->getShouldLogQuery()) {
+            Log::info("process=composable_query_builder", [
+                'query' => Str::replaceArray('?', $this->builder->getBindings(), $this->builder->toSql()),
+            ]);
         }
     }
 
@@ -96,23 +119,5 @@ readonly class QueryBuilderResult implements Jsonable
         }
 
         return $result;
-    }
-
-    public function getAggregates(): array
-    {
-        $aggregation = $this->parameters->getAggregation();
-
-        if (!is_null($aggregation) && is_callable($aggregation)) {
-            return $aggregation($this->builder->cloneWithout(['limit', 'offset', 'groups']));
-        }
-
-        return [];
-    }
-
-    public function getUntouched(): Collection
-    {
-        $this->log();
-
-        return $this->getBuilder()->get();
     }
 }
