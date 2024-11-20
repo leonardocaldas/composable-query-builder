@@ -15,6 +15,17 @@ class FilterBehavior
         };
     }
 
+    public static function whereNullable(): callable
+    {
+        return function ($queryBuilder, $value, $columnName) {
+            if (filled($value)) {
+                $queryBuilder->whereNotNull($columnName, $value);
+            } else if ($value == 0 || $value == "0") {
+                $queryBuilder->whereNull($columnName, $value);
+            }
+        };
+    }
+
     public static function whereNotNull(): callable
     {
         return function ($queryBuilder, $value, $columnName) {
