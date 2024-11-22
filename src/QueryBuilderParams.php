@@ -17,6 +17,7 @@ class QueryBuilderParams
     private Builder $baseQuery;
 
     private array $filterNameMapping = [];
+    private array $orderByNameMapping = [];
 
     private array $filterBehavior = [];
 
@@ -102,6 +103,12 @@ class QueryBuilderParams
     public function filterNameMapping(array $mapping): self
     {
         $this->filterNameMapping = $mapping;
+        return $this;
+    }
+
+    public function orderByNameMapping(array $mapping): self
+    {
+        $this->orderByNameMapping = $mapping;
         return $this;
     }
 
@@ -216,6 +223,11 @@ class QueryBuilderParams
     public function getFilterNameMapping(): array
     {
         return $this->filterNameMapping;
+    }
+
+    public function getOrderByNameMapping(): array
+    {
+        return $this->orderByNameMapping;
     }
 
     public function getFilterNameDefaultTable(): ?string

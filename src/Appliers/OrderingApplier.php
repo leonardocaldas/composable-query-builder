@@ -17,17 +17,18 @@ class OrderingApplier implements Applier
         if ($provider->hasOrderBy()) {
             $builder->reorder();
 
-            $fieldName = self::getOrderingColumnName($queryQueryParams, $provider);
+            $fieldName = self::getColumnName($queryQueryParams, $provider);
+            $fieldName = self::normalizeName($fieldName);
 
-            $orderBy = !str_contains($fieldName, ".") ? DB::raw("`$fieldName`") : $fieldName;
-
-            return $builder->orderBy($orderBy, $provider->getSortDirection());
+            if (! self::applyOrderByNameMapping($builder, $fieldName, $queryQueryParams)) {
+                return $builder->orderBy($fieldName, $provider->getSortDirection());
+            }
         }
 
         return $builder;
     }
 
-    private static function getOrderingColumnName(QueryBuilderParams $queryQueryParams, OrderingProvider $provider): string
+    private static function getColumnName(QueryBuilderParams $queryQueryParams, OrderingProvider $provider): string
     {
         $column = $provider->getFieldName();
 
@@ -44,5 +45,29 @@ class OrderingApplier implements Applier
         }
 
         return $column;
+    }
+
+    private static function applyOrderByNameMapping(Builder $builder, string $fieldName, QueryBuilderParams $queryQueryParams): bool
+    {
+        $resolver = $queryQueryParams->getOrderByNameMapping();
+
+        if ($resolved = data_get($resolver, $fieldName)) {
+            $dir = $queryQueryParams->getOrderingProvider()->getSortDirection();
+
+            if (is_callable($resolved)) {
+                $resolved($builder, $dir);
+            } else if (gettype($resolved) == "string") {
+                $builder->orderByRaw(sprintf("%s %s", $resolved, $dir));
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private static function normalizeName(string $name): mixed
+    {
+        return !str_contains($name, ".") ? DB::raw("`$name`") : $name;
     }
 }
