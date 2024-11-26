@@ -18,9 +18,9 @@ class OrderingApplier implements Applier
             $builder->reorder();
 
             $fieldName = self::getColumnName($queryQueryParams, $provider);
-            $fieldName = self::normalizeName($fieldName);
 
             if (! self::applyOrderByNameMapping($builder, $fieldName, $queryQueryParams)) {
+                $fieldName = self::normalizeName($fieldName);
                 return $builder->orderBy($fieldName, $provider->getSortDirection());
             }
         }
