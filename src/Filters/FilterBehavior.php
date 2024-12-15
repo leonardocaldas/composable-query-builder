@@ -33,6 +33,20 @@ class FilterBehavior
         };
     }
 
+    public static function whereJsonContainsString(): callable
+    {
+        return function ($queryBuilder, $value, $columnName) {
+            $queryBuilder->whereJsonContains($columnName, (string)$value);
+        };
+    }
+
+    public static function whereJsonContainsInt(): callable
+    {
+        return function ($queryBuilder, $value, $columnName) {
+            $queryBuilder->whereJsonContains($columnName, intval($value));
+        };
+    }
+
     public static function whereNull(): callable
     {
         return function ($queryBuilder, $value, $columnName) {
