@@ -105,6 +105,10 @@ class FilterBehavior
     public static function whereIn(): callable
     {
         return function ($queryBuilder, $value, $columnName) {
+            if (is_string($value) || is_numeric($value)) {
+                $value = [$value];
+            }
+
             $queryBuilder->whereIn($columnName, $value);
         };
     }
