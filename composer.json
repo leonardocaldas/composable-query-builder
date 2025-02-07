@@ -2,7 +2,7 @@
     "name": "leonardocaldas/composable-query-builder",
     "type": "composer-plugin",
     "require": {
-        "laravel/framework": "^10.0",
+        "laravel/framework": "^11.0",
         "php": "^8.2",
         "composer-plugin-api": "^2.0"
     },
