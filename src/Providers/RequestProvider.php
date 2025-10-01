@@ -7,6 +7,7 @@ use ComposableQueryBuilder\Providers\Contracts\OrderingProvider;
 use ComposableQueryBuilder\Providers\Contracts\PaginationProvider;
 use ComposableQueryBuilder\Providers\Contracts\VariationProvider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class RequestProvider implements FilterProvider, PaginationProvider, VariationProvider, OrderingProvider
 {
@@ -19,7 +20,26 @@ class RequestProvider implements FilterProvider, PaginationProvider, VariationPr
 
     public function getFilters(): array
     {
-        return $this->request->except("page", "fields", "limit", "query", "variation", "order_by", "XDEBUG_SESSION_START");
+        $qs = $this->request->getQueryString();
+
+        $fields = Str::of($qs)->explode('&');
+
+        $dotted = collect($fields)
+            ->filter(fn($item) => Str::contains($item, '.'))
+            ->mapWithKeys(function($value) {
+                $parts = explode('=', $value);
+                return [$parts[0] => $parts[1]];
+            })
+            ->toArray();
+
+        $notDotted = collect($fields)
+            ->filter(fn($item) => ! Str::contains($item, '.'))
+            ->join("&");
+
+        $qs = [];
+        parse_str($notDotted, $qs);
+
+        return array_merge($qs, $dotted);
     }
 
     public function getPage(): int
