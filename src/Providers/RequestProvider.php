@@ -39,7 +39,9 @@ class RequestProvider implements FilterProvider, PaginationProvider, VariationPr
         $qs = [];
         parse_str($notDotted, $qs);
 
-        return array_merge($qs, $dotted);
+        return collect(array_merge($qs, $dotted))->except(
+            "page", "fields", "limit", "query", "variation", "order_by", "XDEBUG_SESSION_START"
+        )->toArray();
     }
 
     public function getPage(): int
