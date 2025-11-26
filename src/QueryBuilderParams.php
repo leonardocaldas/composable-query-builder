@@ -6,7 +6,7 @@ use Closure;
 use ComposableQueryBuilder\Providers\Contracts\FilterProvider;
 use ComposableQueryBuilder\Providers\Contracts\OrderingProvider;
 use ComposableQueryBuilder\Providers\Contracts\PaginationProvider;
-use ComposableQueryBuilder\Providers\Contracts\VariationProvider;
+use ComposableQueryBuilder\Providers\Contracts\ModifierProvider;
 use ComposableQueryBuilder\Providers\RequestProvider;
 use ComposableQueryBuilder\Representation\QueryModifier;
 use Illuminate\Database\Query\Builder;
@@ -47,7 +47,7 @@ class QueryBuilderParams
 
     private PaginationProvider $paginationProvider;
 
-    private VariationProvider $variationProvider;
+    private ModifierProvider $variationProvider;
 
     private bool  $filtersEnabled = true;
     private array $allowedFilters = [];
@@ -88,7 +88,7 @@ class QueryBuilderParams
         return $this;
     }
 
-    public function setModifierProvider(VariationProvider $variationProvider): self
+    public function setModifierProvider(ModifierProvider $variationProvider): self
     {
         $this->variationProvider = $variationProvider;
         return $this;
@@ -245,7 +245,7 @@ class QueryBuilderParams
         return !empty($this->hasTypeResolver);
     }
 
-    public function hasVariations(): bool
+    public function hasModifier(): bool
     {
         return !empty($this->modifiers);
     }
@@ -272,7 +272,7 @@ class QueryBuilderParams
         return $this;
     }
 
-    public function getVariationProvider(): VariationProvider
+    public function getModifierProvider(): ModifierProvider
     {
         return $this->variationProvider;
     }

@@ -5,10 +5,10 @@ namespace ComposableQueryBuilder\Providers;
 use ComposableQueryBuilder\Providers\Contracts\FilterProvider;
 use ComposableQueryBuilder\Providers\Contracts\OrderingProvider;
 use ComposableQueryBuilder\Providers\Contracts\PaginationProvider;
-use ComposableQueryBuilder\Providers\Contracts\VariationProvider;
+use ComposableQueryBuilder\Providers\Contracts\ModifierProvider;
 use Illuminate\Http\Request;
 
-class RequestProvider implements FilterProvider, PaginationProvider, VariationProvider, OrderingProvider
+class RequestProvider implements FilterProvider, PaginationProvider, ModifierProvider, OrderingProvider
 {
     private Request $request;
 
@@ -19,7 +19,7 @@ class RequestProvider implements FilterProvider, PaginationProvider, VariationPr
 
     public function getFilters(): array
     {
-        return $this->request->except("page", "fields", "limit", "query", "variation", "order_by", "XDEBUG_SESSION_START");
+        return $this->request->except("page", "fields", "limit", "query", "modifier", "order_by", "XDEBUG_SESSION_START");
     }
 
     public function getPage(): int
@@ -32,9 +32,9 @@ class RequestProvider implements FilterProvider, PaginationProvider, VariationPr
         return $this->request->get("limit", 10);
     }
 
-    public function getVariation()
+    public function getModifier()
     {
-        return $this->request->input("variation");
+        return $this->request->input("modifier");
     }
 
     public function shouldPaginate(): bool
@@ -42,9 +42,9 @@ class RequestProvider implements FilterProvider, PaginationProvider, VariationPr
         return $this->request->has("page") && !$this->request->is("/export");
     }
 
-    public function hasVariation()
+    public function hasModifier(): bool
     {
-        return !empty($this->getVariation());
+        return !empty($this->getModifier());
     }
 
     public function hasOrderBy(): bool

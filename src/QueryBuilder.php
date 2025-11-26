@@ -5,7 +5,7 @@ namespace ComposableQueryBuilder;
 use ComposableQueryBuilder\Appliers\FilterApplier;
 use ComposableQueryBuilder\Appliers\OrderingApplier;
 use ComposableQueryBuilder\Appliers\PaginationApplier;
-use ComposableQueryBuilder\Appliers\VariationApplier;
+use ComposableQueryBuilder\Appliers\ModifierApplier;
 use ComposableQueryBuilder\Representation\QueryBuilderResult;
 
 class QueryBuilder
@@ -14,7 +14,7 @@ class QueryBuilder
     {
         $builder = clone $parameters->getBaseQuery();
 
-        $builder = VariationApplier::apply($builder, $parameters);
+        $builder = ModifierApplier::apply($builder, $parameters);
 
         $builder = FilterApplier::apply($builder, $parameters);
 
